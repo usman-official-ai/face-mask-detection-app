@@ -1,0 +1,4 @@
+Dataset Split,With Mask,Without Mask,Total
+Training,2980,3063,6043
+Validation,372,382,754
+Testing,373,383,756

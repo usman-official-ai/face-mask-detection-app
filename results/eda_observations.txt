@@ -1,0 +1,23 @@
+
+1. Class Distribution:
+   - Both classes are relatively balanced across all splits.
+   - No significant class imbalance detected.
+
+2. Image Dimensions:
+   - Images have varying sizes (different widths and heights).
+   - All images will be resized to 224x224 during preprocessing.
+
+3. Dataset Split:
+   - Training: 80% of total images
+   - Validation: 10% of total images
+   - Testing: 10% of total images
+
+4. Data Quality:
+   - No corrupted images found.
+   - All images are in RGB format (3 channels).
+
+5. Total Images:
+   - Training: 6043
+   - Validation: 754
+   - Testing: 756
+   - Overall: 7553
