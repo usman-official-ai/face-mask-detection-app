@@ -4,7 +4,7 @@
 This project detects whether a person is wearing a face mask using deep learning and computer vision. It supports image uploads and real-time webcam detection.
 
 ## Live Demo
-🔗 **Streamlit App:** [https://deep-learning-face-mask-detection.streamlit.app](https://deep-learning-face-mask-detection.streamlit.app)
+🔗 **Streamlit App:** https://face-mask-detection-app-fj4rtaayswd6dywttpcymh.streamlit.app/  
 
 ## Features
 - Deep learning-based face mask detection
