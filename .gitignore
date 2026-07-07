@@ -23,7 +23,7 @@ Thumbs.db
 dataset/
 
 # Models (if large)
-*.h5
+.h5
 *.pb
 *.pkl
 
