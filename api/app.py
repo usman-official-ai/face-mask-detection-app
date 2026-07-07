@@ -3,25 +3,22 @@ import cv2
 import numpy as np
 from tensorflow.keras.models import load_model
 from PIL import Image
-import tempfile
-import os
 
 st.set_page_config(page_title="Face Mask Detection", layout="centered")
 
 st.title("😷 Face Mask Detection")
-st.write("Upload an image or use webcam for real-time detection")
 
 @st.cache_resource
 def load_model_cached():
-    return load_model('models/face_mask_model.h5')
+    return load_model('face_mask_model_finetuned.h5')
 
 model = load_model_cached()
 IMG_SIZE = 128
 
-# Tab selection
-tab1, tab2 = st.tabs(["📸 Image Upload", "🎥 Webcam"])
+# ========== TABS ==========
+tab1, tab2 = st.tabs(["📸 Upload Image", "🎥 Webcam"])
 
-# ==================== TAB 1: Image Upload ====================
+# ========== TAB 1: IMAGE UPLOAD ==========
 with tab1:
     uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
     
@@ -42,27 +39,57 @@ with tab1:
         pred = model.predict(input_data, verbose=0)[0][0]
 
         if pred > 0.5:
-            label = "Without Mask"
-            confidence = pred * 100
+            st.error(f"❌ Without Mask ({pred*100:.2f}%)")
         else:
-            label = "With Mask"
-            confidence = (1 - pred) * 100
+            st.success(f"✅ With Mask ({(1-pred)*100:.2f}%)")
 
-        if label == "With Mask":
-            st.success(f"✅ {label} ({confidence:.2f}%)")
-        else:
-            st.error(f"❌ {label} ({confidence:.2f}%)")
-
-# ==================== TAB 2: Webcam ====================
+# ========== TAB 2: WEBCAM ==========
 with tab2:
-    st.write("Click 'Start Webcam' to begin real-time detection.")
+    st.info("Webcam works only on local machine. Click 'Start Webcam' to run.")
     
-    run_webcam = st.button("🎥 Start Webcam", type="primary")
-    
-    if run_webcam:
-        st.info("Webcam started. Press 'q' in the webcam window to quit.")
+    if st.button("🎥 Start Webcam"):
+        st.warning("Webcam will open in a separate OpenCV window. Press 'q' to quit.")
         
-        # Run the webcam detection script
-        import subprocess
-        import sys
-        subprocess.run([sys.executable, "src/detection.py"])
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            st.error("Could not open webcam.")
+        else:
+            st.success("Webcam running... Press 'q' to quit.")
+            face_cascade = cv2.CascadeClassifier(
+                cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+            )
+            
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+                
+                for (x, y, w, h) in faces:
+                    face = frame[y:y+h, x:x+w]
+                    face_resized = cv2.resize(face, (IMG_SIZE, IMG_SIZE))
+                    face_norm = face_resized / 255.0
+                    face_input = np.expand_dims(face_norm, axis=0)
+                    
+                    pred = model.predict(face_input, verbose=0)[0][0]
+                    
+                    if pred > 0.5:
+                        label = "Without Mask"
+                        color = (0, 0, 255)
+                    else:
+                        label = "With Mask"
+                        color = (0, 255, 0)
+                    
+                    cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
+                    cv2.putText(frame, f"{label}", (x, y-10), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                
+                cv2.imshow("Face Mask Detection", frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            
+            cap.release()
+            cv2.destroyAllWindows()
+            st.info("Webcam stopped.")
